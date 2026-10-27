@@ -123,8 +123,54 @@ def komutlari_oku(dosya_yolu):
     return KomutListesi(komutlar, hatalar), hatalar
 
 
+def yeni_durum(izgara, baslangic, ayarlar):
+
+    ayarlar = _ayarlari_dogrula(ayarlar)
+
+
+    harita = deepcopy(izgara)
+    if not harita or not harita[0] or any(len(s) != len(harita[0]) for s in harita):
+        raise ValueError("Geçersiz ızgara.")
+    x, y = baslangic
+    if not (0 <= y < len(harita) and 0 <= x < len(harita[0])) or harita[y][x] == "#":
+        raise ValueError("Robotun başlangıcı geçilebilir bir hücre olmalıdır.")
+    if harita[y][x] == "R":
+        harita[y][x] = "."
+    return {
+        "izgara": harita, "konum": (x, y), "yon": ayarlar["baslangic_yonu"],
+        "batarya": ayarlar["batarya_kapasitesi"], "yuk": False,
+        "teslim": 0, "carpisma": 0, "toplam_adim": 0,
+        "batarya_bitti": False, "durdu": False, "ayarlar": ayarlar,
+        "ziyaretler": {(x, y): 1}, "log": [], "hatali_satirlar": [],
+        "son_olay": "HAZIR",
+    }
+
+
 def komut_metni(komut):
     ad, parametre = komut
     if ad == "GIT":
         return f"GIT {parametre[0]} {parametre[1]}"
     return ad if parametre is None else f"{ad} {parametre}"
+
+
+def durum_sonucu(durum):
+
+    ziyaretler = durum["ziyaretler"]
+
+    en_cok = min(ziyaretler, key=lambda p: (-ziyaretler[p], p[1], p[0]))
+    return {
+        "konum": list(durum["konum"]), "yon": durum["yon"],
+        "batarya": durum["batarya"], "yuk": durum["yuk"],
+        "teslim": durum["teslim"], "carpisma": durum["carpisma"],
+        "toplam_adim": durum["toplam_adim"], "batarya_bitti": durum["batarya_bitti"],
+        "en_cok_ziyaret_edilen": list(en_cok),
+        "en_cok_ziyaret_sayisi": ziyaretler[en_cok],
+        "hatali_satirlar": deepcopy(durum["hatali_satirlar"]),
+    }
+
+
+def harita_metni(durum):
+    harita = deepcopy(durum["izgara"])
+    x, y = durum["konum"]
+    harita[y][x] = "R"
+    return "\n".join("".join(satir) for satir in harita)
