@@ -201,6 +201,48 @@ def komut_metni(komut):
     return ad if parametre is None else f"{ad} {parametre}"
 
 
+def komut_uygula(durum, komut):
+
+    if durum["durdu"]:
+        return "DURDU"
+    ad, parametre = komut
+    olay = "GECERSIZ"
+    x, y = durum["konum"]
+    hucre = durum["izgara"][y][x]
+    if ad == "ILERI":
+        if type(parametre) is int and parametre > 0:
+            for _ in range(parametre):
+                olay = _bir_adim(durum)
+                if olay != "HAREKET":
+
+                    break
+    elif ad in ("SAG", "SOL"):
+        olay = _don(durum, ad)
+    elif ad == "AL" and hucre == "K" and not durum["yuk"]:
+        durum["yuk"] = True
+        durum["izgara"][y][x] = "."
+        olay = "ALINDI"
+    elif ad == "BIRAK" and durum["yuk"]:
+        if hucre == "T":
+            durum["yuk"] = False
+            durum["teslim"] += 1
+            olay = "TESLIM"
+        elif hucre == ".":
+            durum["yuk"] = False
+            durum["izgara"][y][x] = "K"
+            olay = "BIRAKILDI"
+    elif ad == "SARJ" and hucre == "S":
+        durum["batarya"] = durum["ayarlar"]["batarya_kapasitesi"]
+        olay = "SARJ"
+    durum["son_olay"] = olay
+    x, y = durum["konum"]
+    durum["log"].append({
+        "adim": len(durum["log"]) + 1, "komut": komut_metni(komut),
+        "x": x, "y": y, "yon": durum["yon"], "batarya": durum["batarya"], "olay": olay,
+    })
+    return olay
+
+
 def durum_sonucu(durum):
 
     ziyaretler = durum["ziyaretler"]
