@@ -146,6 +146,54 @@ def yeni_durum(izgara, baslangic, ayarlar):
     }
 
 
+def _enerji_harca(durum, maliyet):
+
+    if maliyet > durum["batarya"]:
+        durum["durdu"] = True
+        durum["batarya_bitti"] = True
+        return False
+    durum["batarya"] -= maliyet
+
+
+    return True
+
+
+def _gecilebilir(durum, x, y):
+    harita = durum["izgara"]
+    return 0 <= y < len(harita) and 0 <= x < len(harita[0]) and harita[y][x] != "#"
+
+
+def _bir_adim(durum):
+    x, y = durum["konum"]
+    dx, dy = YON_VEKTORLERI[durum["yon"]]
+    hedef = (x + dx, y + dy)
+    if not _gecilebilir(durum, *hedef):
+        durum["carpisma"] += 1
+        kalan = durum["batarya"] - durum["ayarlar"]["carpisma_cezasi"]
+        durum["batarya"] = max(0, kalan)
+        if kalan < 0:
+            durum["durdu"] = durum["batarya_bitti"] = True
+            return "BATARYA_BITTI"
+        return "CARPISMA"
+    maliyet = durum["ayarlar"]["adim_maliyeti"]
+    if durum["yuk"]:
+        maliyet *= durum["ayarlar"]["yuk_carpani"]
+    if not _enerji_harca(durum, maliyet):
+        return "BATARYA_BITTI"
+    durum["konum"] = hedef
+    durum["toplam_adim"] += 1
+    durum["ziyaretler"][hedef] = durum["ziyaretler"].get(hedef, 0) + 1
+    return "HAREKET"
+
+
+def _don(durum, ad):
+    if not _enerji_harca(durum, durum["ayarlar"]["donus_maliyeti"]):
+        return "BATARYA_BITTI"
+    indeks = YONLER.index(durum["yon"])
+    durum["yon"] = YONLER[(indeks + (1 if ad == "SAG" else -1)) % 4]
+    return "DONUS"
+
+
 def komut_metni(komut):
     ad, parametre = komut
     if ad == "GIT":
