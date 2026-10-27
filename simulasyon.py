@@ -259,8 +259,54 @@ def durum_sonucu(durum):
     }
 
 
+def simulasyonu_calistir(izgara, baslangic, komutlar, ayarlar):
+    durum = yeni_durum(izgara, baslangic, ayarlar)
+    durum["hatali_satirlar"] = deepcopy(getattr(komutlar, "hatalar", []))
+    for komut in komutlar:
+        if durum["durdu"]:
+            break
+        komut_uygula(durum, komut)
+    return durum_sonucu(durum), durum["log"]
+
+
+def sonuc_yaz(sonuc, dosya_yolu):
+    Path(dosya_yolu).write_text(json.dumps(sonuc, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def log_yaz(log, dosya_yolu):
+
+    with open(dosya_yolu, "w", encoding="utf-8", newline="") as dosya:
+        yazici = csv.DictWriter(dosya, fieldnames=LOG_ALANLARI)
+        yazici.writeheader()
+        yazici.writerows(log)
+
+
 def harita_metni(durum):
     harita = deepcopy(durum["izgara"])
     x, y = durum["konum"]
     harita[y][x] = "R"
     return "\n".join("".join(satir) for satir in harita)
+
+
+def main():
+
+    parser = argparse.ArgumentParser(description="Depo robotu simülatörü")
+    parser.add_argument("klasor", type=Path, help="harita.txt, komutlar.txt ve ayarlar.json içeren klasör")
+    parser.add_argument("--cikti", type=Path, default=Path("ciktilar"))
+    args = parser.parse_args()
+    try:
+        izgara, baslangic = harita_oku(args.klasor / "harita.txt")
+        ayarlar = ayarlari_oku(args.klasor / "ayarlar.json")
+        komutlar, _ = komutlari_oku(args.klasor / "komutlar.txt")
+        sonuc, log = simulasyonu_calistir(izgara, baslangic, komutlar, ayarlar)
+        args.cikti.mkdir(parents=True, exist_ok=True)
+        sonuc_yaz(sonuc, args.cikti / "sonuc.json")
+        log_yaz(log, args.cikti / "log.csv")
+    except (OSError, ValueError, UnicodeError) as hata:
+        parser.exit(1, f"Hata: {hata}\n")
+    print(json.dumps(sonuc, ensure_ascii=False, indent=2))
+    print(f"Çıktılar: {args.cikti.resolve()}")
+
+
+if __name__ == "__main__":
+    main()
