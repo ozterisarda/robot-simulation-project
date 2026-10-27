@@ -1,26 +1,18 @@
 import argparse
-
 from collections import deque
-
 from copy import deepcopy
-
 import csv
-
 import json
-
 from pathlib import Path
-
 import re
 
+
 YONLER = ("K", "D", "G", "B")
-
 YON_VEKTORLERI = {"K": (0, -1), "D": (1, 0), "G": (0, 1), "B": (-1, 0)}
-
 VARSAYILAN_AYARLAR = {
     "batarya_kapasitesi": 100, "baslangic_yonu": "D", "adim_maliyeti": 2,
     "yuk_carpani": 2, "donus_maliyeti": 1, "carpisma_cezasi": 5,
 }
-
 LOG_ALANLARI = ("adim", "komut", "x", "y", "yon", "batarya", "olay")
 
 
@@ -194,6 +186,54 @@ def _don(durum, ad):
     return "DONUS"
 
 
+def en_kisa_yol(durum, hedef):
+
+    hedef = tuple(hedef)
+    if not _gecilebilir(durum, *hedef):
+        return None
+    baslangic = durum["konum"]
+    kuyruk = deque([baslangic])
+    onceki = {baslangic: None}
+
+
+    while kuyruk:
+        simdiki = kuyruk.popleft()
+        if simdiki == hedef:
+            yol = []
+            while simdiki != baslangic:
+                yol.append(simdiki)
+                simdiki = onceki[simdiki]
+            return list(reversed(yol))
+        x, y = simdiki
+        for dx, dy in YON_VEKTORLERI.values():
+            komsu = (x + dx, y + dy)
+            if komsu not in onceki and _gecilebilir(durum, *komsu):
+                onceki[komsu] = simdiki
+                kuyruk.append(komsu)
+    return None
+
+
+def _hedefe_git(durum, hedef):
+    yol = en_kisa_yol(durum, hedef)
+    if yol is None:
+        return "YOL_YOK"
+    if not yol:
+        return "HEDEFTE"
+    for x, y in yol:
+        sx, sy = durum["konum"]
+        vektor = (x - sx, y - sy)
+        istenen = next(yon for yon, v in YON_VEKTORLERI.items() if v == vektor)
+        fark = (YONLER.index(istenen) - YONLER.index(durum["yon"])) % 4
+        donusler = ["SOL"] if fark == 3 else ["SAG"] * fark
+        for donus in donusler:
+            if _don(durum, donus) == "BATARYA_BITTI":
+                return "BATARYA_BITTI"
+        olay = _bir_adim(durum)
+        if olay != "HAREKET":
+            return olay
+    return "HAREKET"
+
+
 def komut_metni(komut):
     ad, parametre = komut
     if ad == "GIT":
@@ -234,6 +274,9 @@ def komut_uygula(durum, komut):
     elif ad == "SARJ" and hucre == "S":
         durum["batarya"] = durum["ayarlar"]["batarya_kapasitesi"]
         olay = "SARJ"
+    elif ad == "GIT":
+        if isinstance(parametre, (tuple, list)) and len(parametre) == 2 and all(type(n) is int and n >= 0 for n in parametre):
+            olay = _hedefe_git(durum, parametre)
     durum["son_olay"] = olay
     x, y = durum["konum"]
     durum["log"].append({
