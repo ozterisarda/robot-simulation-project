@@ -24,6 +24,14 @@ VARSAYILAN_AYARLAR = {
 LOG_ALANLARI = ("adim", "komut", "x", "y", "yon", "batarya", "olay")
 
 
+class KomutListesi(list):
+
+
+    def __init__(self, degerler=(), hatalar=None):
+        super().__init__(degerler)
+        self.hatalar = list(hatalar or [])
+
+
 def harita_oku(dosya_yolu):
 
     satirlar = Path(dosya_yolu).read_text(encoding="utf-8-sig").splitlines()
@@ -76,3 +84,47 @@ def ayarlari_oku(dosya_yolu):
     except json.JSONDecodeError as hata:
         raise ValueError(f"Ayarlar JSON biçiminde değil: satır {hata.lineno}.") from hata
     return _ayarlari_dogrula(ayarlar)
+
+
+def komutlari_oku(dosya_yolu):
+
+    komutlar = []
+    hatalar = []
+    satirlar = Path(dosya_yolu).read_text(encoding="utf-8-sig").splitlines()
+    for no, icerik in enumerate(satirlar, start=1):
+        parcalar = icerik.split()
+        if not parcalar:
+
+
+            continue
+        ad = parcalar[0]
+        neden = None
+        if ad == "ILERI":
+            if len(parcalar) != 2:
+                neden = "ILERI tam olarak bir pozitif tam sayı alır."
+            elif not re.fullmatch(r"[0-9]+", parcalar[1]) or int(parcalar[1]) <= 0:
+                neden = "Adım sayısı sıfırdan büyük bir tam sayı olmalıdır."
+            else:
+                komutlar.append((ad, int(parcalar[1])))
+        elif ad == "GIT":
+            if len(parcalar) != 3 or any(not re.fullmatch(r"[0-9]+", p) for p in parcalar[1:]):
+                neden = "GIT iki negatif olmayan tam sayı alır: GIT x y."
+            else:
+                komutlar.append((ad, (int(parcalar[1]), int(parcalar[2]))))
+        elif ad in ("SAG", "SOL", "AL", "BIRAK", "SARJ"):
+            if len(parcalar) != 1:
+                neden = f"{ad} parametre almaz."
+            else:
+                komutlar.append((ad, None))
+        else:
+            neden = "Bilinmeyen komut; komutlar büyük harfle yazılmalıdır."
+        if neden:
+            hatalar.append({"satir": no, "icerik": icerik, "neden": neden})
+    return KomutListesi(komutlar, hatalar), hatalar
+
+
+def komut_metni(komut):
+    ad, parametre = komut
+    if ad == "GIT":
+        return f"GIT {parametre[0]} {parametre[1]}"
+    return ad if parametre is None else f"{ad} {parametre}"
