@@ -1,20 +1,17 @@
 from pathlib import Path
-
 import tkinter as tk
-
 from tkinter import filedialog, messagebox, ttk
 
 import simulasyon as sim
 
-KOK = Path(__file__).resolve().parent
 
+KOK = Path(__file__).resolve().parent
 RENK = {
     "zemin": "#f1f5f9", "kart": "#ffffff", "yazi": "#12243a",
     "soluk": "#64748b", "vurgu": "#087f8c", "gece": "#14283f",
     "duvar": "#34465b", "bos": "#edf2f7", "kutu": "#f3bc63",
     "teslim": "#9cddbc", "sarj": "#a9d5ff", "cizgi": "#d9e3ec",
 }
-
 OLAYLAR = {
     "HAZIR": "Dosyalar yüklendi. İlk komut için hazırsınız.",
     "HAREKET": "Robot ilerledi.", "DONUS": "Robot yön değiştirdi.",
@@ -28,6 +25,42 @@ OLAYLAR = {
 
 
 class DepoUygulamasi:
+    def __init__(self, pencere):
+        self.pencere = pencere
+        self.durum = None
+        self.komutlar = []
+        self.hatalar = []
+        self.ilk_veri = None
+        self.indeks = 0
+        self.calisiyor = False
+        self.zamanlayici = None
+        self.hucre_boyutu = 32
+        self.harita_ofset = (0, 0)
+        self.iz_goster = tk.BooleanVar(value=True)
+        self.hiz = tk.DoubleVar(value=350)
+        self.durum_mesaji = tk.StringVar(value="Bir veri klasörü yükleyin.")
+        self.hucre_bilgisi = tk.StringVar(value="Hücre ayrıntısı için haritanın üzerinde gezinin.")
+        self.sonraki = tk.StringVar(value="—")
+        self.kaynak = tk.StringVar(value="Henüz veri yüklenmedi")
+        self.degerler = {ad: tk.StringVar(value="—") for ad in (
+            "konum", "yon", "batarya", "yuk", "teslim", "carpisma", "toplam_adim", "ilerleme")}
+        self.pencere.title("Depo Robotu | Programlama Lab I")
+
+
+        genislik = min(1240, self.pencere.winfo_screenwidth() - 64)
+        yukseklik = min(840, self.pencere.winfo_screenheight() - 80)
+        sol = max(0, (self.pencere.winfo_screenwidth() - genislik) // 2)
+        ust = max(0, (self.pencere.winfo_screenheight() - yukseklik - 80) // 2)
+        self.pencere.geometry(f"{genislik}x{yukseklik}+{sol}+{ust}")
+        self.pencere.minsize(min(1020, genislik), min(700, yukseklik))
+        self.pencere.configure(bg=RENK["zemin"])
+        self.pencere.protocol("WM_DELETE_WINDOW", self.kapat)
+        self._stilleri_kur()
+        self._ekrani_kur()
+        self._kisayollari_kur()
+
+        self.klasor_yukle(KOK / "demo_verileri" / "tanitim")
+
     def _stilleri_kur(self):
         stil = ttk.Style(self.pencere)
         stil.theme_use("clam")
@@ -393,3 +426,13 @@ class DepoUygulamasi:
     def kapat(self):
         self.duraklat()
         self.pencere.destroy()
+
+
+def main():
+    pencere = tk.Tk()
+    DepoUygulamasi(pencere)
+    pencere.mainloop()
+
+
+if __name__ == "__main__":
+    main()
