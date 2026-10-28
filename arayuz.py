@@ -170,5 +170,72 @@ class DepoUygulamasi:
         self.pencere.bind("<Control-r>", lambda e: self.sifirla())
         self.pencere.bind("<Control-o>", lambda e: self.klasor_sec())
 
+    def klasor_sec(self):
+        self.duraklat()
+        klasor = filedialog.askdirectory(title="Üç girdi dosyasının bulunduğu klasörü seçin", initialdir=KOK)
+        if klasor:
+            self.klasor_yukle(klasor)
+
+    def klasor_yukle(self, klasor):
+        klasor = Path(klasor)
+        return self.dosya_yukle(klasor / "harita.txt", klasor / "komutlar.txt", klasor / "ayarlar.json")
+
+    def dosyalari_sec(self):
+        self.duraklat()
+        yollar = []
+        for ad, tur in [("harita.txt", "*.txt"), ("komutlar.txt", "*.txt"), ("ayarlar.json", "*.json")]:
+            yol = filedialog.askopenfilename(title=f"{ad} dosyasını seçin", initialdir=KOK, filetypes=[("Girdi dosyası", tur), ("Tüm dosyalar", "*.*")])
+            if not yol:
+                return
+            yollar.append(yol)
+        self.dosya_yukle(*yollar)
+
+    def dosya_yukle(self, harita, komut, ayar):
+        self.duraklat()
+        try:
+            izgara, baslangic = sim.harita_oku(harita)
+            ayarlar = sim.ayarlari_oku(ayar)
+            komutlar, hatalar = sim.komutlari_oku(komut)
+        except (OSError, ValueError, UnicodeError) as hata:
+            messagebox.showerror("Dosyalar yüklenemedi", str(hata), parent=self.pencere)
+            return False
+
+        self.ilk_veri = (izgara, baslangic, ayarlar)
+        self.komutlar, self.hatalar = komutlar, hatalar
+        self.kaynak.set(str(Path(harita).parent.name) + f"  /  {len(izgara[0])} × {len(izgara)} hücre")
+        self.komut_agaci.delete(*self.komut_agaci.get_children())
+        for i, k in enumerate(komutlar):
+            self.komut_agaci.insert("", "end", iid=str(i), values=(i + 1, sim.komut_metni(k)))
+        self.hata_metni.configure(state="normal")
+        self.hata_metni.delete("1.0", "end")
+        for hata in hatalar:
+            self.hata_metni.insert("end", f"Satır {hata['satir']}: {hata['icerik']}\n{hata['neden']}\n\n")
+        if not hatalar:
+            self.hata_metni.insert("end", "Hatalı komut satırı bulunmadı.")
+        self.hata_metni.configure(state="disabled")
+        self.sekmeler.tab(2, text=f"Hatalı satırlar ({len(hatalar)})")
+        self.sifirla()
+        self.durum_mesaji.set(f"Yüklendi: {len(komutlar)} geçerli komut, {len(hatalar)} hatalı satır. F6: adım · F5: çalıştır / duraklat")
+        return True
+
+    def ornek_yukle(self, olay=None):
+        secim = self.ornek.current()
+        yol = KOK / "demo_verileri" / "tanitim" if secim == 0 else KOK / "deneme_verileri" / f"veri_{secim}"
+        self.klasor_yukle(yol)
+
+    def sifirla(self):
+        self.duraklat()
+        if self.ilk_veri is None:
+            return
+        izgara, baslangic, ayarlar = self.ilk_veri
+        self.durum = sim.yeni_durum(izgara, baslangic, ayarlar)
+        self.durum["hatali_satirlar"] = list(self.hatalar)
+        self.indeks = 0
+        self.log_agaci.delete(*self.log_agaci.get_children())
+        for iid in self.komut_agaci.get_children():
+            self.komut_agaci.item(iid, tags=())
+        self.durum_mesaji.set("Başlangıç durumuna dönüldü. Dosyalar yeniden okunmadı.")
+        self.guncelle()
+
     def rehber(self):
         messagebox.showinfo("Kısa kullanım rehberi", "1. Klasör veya üç ayrı girdi dosyası yükleyin.\n2. Adım (F6) bir komutu bütünüyle işler.\n3. Tümünü çalıştır (F5) komutları sırayla oynatır.\n4. Sıfırla (Ctrl+R) haritayı ve bataryayı geri getirir.\n5. Bitişte çıktılar otomatik olarak ciktilar klasörüne yazılır.\n\nK: kutu · T: teslim · S: şarj\nYönler: K kuzey, D doğu, G güney, B batı.\nKoordinat (x, y): sütun, satır; sol üst (0, 0).\n\nGIT x y en kısa hücre yolunu kullanır.\nKullanım ayrıntıları README.md dosyasındadır.", parent=self.pencere)
