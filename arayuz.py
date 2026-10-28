@@ -311,6 +311,82 @@ class DepoUygulamasi:
         except OSError as hata:
             messagebox.showerror("Kayıt hatası", str(hata), parent=self.pencere)
 
+    def guncelle(self):
+        d = self.durum
+        if d is None:
+            return
+        x, y = d["konum"]
+        self.degerler["konum"].set(f"({x}, {y})")
+        self.degerler["yon"].set({"K": "↑ Kuzey", "D": "→ Doğu", "G": "↓ Güney", "B": "← Batı"}[d["yon"]])
+        self.degerler["batarya"].set(f"{d['batarya']} / {d['ayarlar']['batarya_kapasitesi']} enerji")
+        self.degerler["yuk"].set("1 kutu" if d["yuk"] else "Boş")
+        for ad in ("teslim", "carpisma", "toplam_adim"):
+            self.degerler[ad].set(str(d[ad]))
+        kapasite = d["ayarlar"]["batarya_kapasitesi"]
+        self.batarya_cubugu["value"] = 100 * d["batarya"] / kapasite if kapasite else 0
+        self.degerler["ilerleme"].set(f"{self.indeks} / {len(self.komutlar)} komut işlendi")
+        bitti = d["durdu"] or self.indeks >= len(self.komutlar)
+        self.adim_buton.configure(state="disabled" if bitti else "normal")
+        self.calistir_buton.configure(state="disabled" if bitti else "normal")
+        self.sonraki.set("DURDU" if d["durdu"] else "TAMAMLANDI" if bitti else sim.komut_metni(self.komutlar[self.indeks]))
+        if not bitti:
+            self.komut_agaci.item(str(self.indeks), tags=("siradaki",))
+            self.komut_agaci.see(str(self.indeks))
+        self.harita_ciz()
+
+    def harita_ciz(self):
+        if self.durum is None:
+            return
+        c = self.canvas
+        c.delete("all")
+        harita = self.durum["izgara"]
+        satir, sutun = len(harita), len(harita[0])
+        w, h = max(c.winfo_width(), 100), max(c.winfo_height(), 100)
+        boyut = max(1, min((w - 52) / sutun, (h - 52) / satir, 65))
+        self.hucre_boyutu = boyut
+        ox, oy = (w - sutun * boyut) / 2, (h - satir * boyut) / 2 + 8
+        self.harita_ofset = (ox, oy)
+        font = ("Segoe UI", max(6, int(boyut * .32)), "bold")
+        for x in range(sutun):
+            if boyut >= 16:
+                c.create_text(ox + (x + .5) * boyut, oy - 14, text=x, fill="#adc0d1", font=("Segoe UI", 8))
+        for y, hucreler in enumerate(harita):
+            if boyut >= 16:
+                c.create_text(ox - 17, oy + (y + .5) * boyut, text=y, fill="#adc0d1", font=("Segoe UI", 8))
+            for x, hucre in enumerate(hucreler):
+                renk = {"#": RENK["duvar"], ".": RENK["bos"], "K": RENK["kutu"], "T": RENK["teslim"], "S": RENK["sarj"]}.get(hucre, RENK["bos"])
+                ziyaret = self.durum["ziyaretler"].get((x, y), 0)
+                if self.iz_goster.get() and hucre == "." and ziyaret:
+                    renk = "#d4eceb" if ziyaret == 1 else "#b3dcd9"
+                x1, y1 = ox + x * boyut, oy + y * boyut
+                c.create_rectangle(x1 + 1, y1 + 1, x1 + boyut - 1, y1 + boyut - 1, fill=renk, outline="")
+                if hucre in "KTS" and boyut >= 15:
+                    c.create_text(x1 + boyut / 2, y1 + boyut / 2, text=hucre, fill=RENK["yazi"], font=font)
+                elif self.iz_goster.get() and hucre == "." and ziyaret and boyut >= 25:
+                    c.create_text(x1 + boyut / 2, y1 + boyut / 2, text=str(ziyaret), fill="#699e9b", font=("Segoe UI", 8))
+        x, y = self.durum["konum"]
+        cx, cy = ox + (x + .5) * boyut, oy + (y + .5) * boyut
+        rayon = boyut * .32
+        c.create_oval(cx - rayon, cy - rayon, cx + rayon, cy + rayon, fill=RENK["vurgu"], outline="white", width=2)
+        dx, dy = sim.YON_VEKTORLERI[self.durum["yon"]]
+
+        c.create_polygon(cx + dx * rayon * .8, cy + dy * rayon * .8,
+                         cx - dx * rayon * .5 - dy * rayon * .5, cy - dy * rayon * .5 + dx * rayon * .5,
+                         cx - dx * rayon * .5 + dy * rayon * .5, cy - dy * rayon * .5 - dx * rayon * .5,
+                         fill="white", outline="")
+        if self.durum["yuk"]:
+            c.create_rectangle(cx + rayon * .3, cy + rayon * .3, cx + rayon, cy + rayon, fill=RENK["kutu"], outline="white")
+
+    def hucre_goster(self, olay):
+        if self.durum is None:
+            return
+        ox, oy = self.harita_ofset
+        x, y = int((olay.x - ox) // self.hucre_boyutu), int((olay.y - oy) // self.hucre_boyutu)
+        h = self.durum["izgara"]
+        if 0 <= y < len(h) and 0 <= x < len(h[0]):
+            ad = {"#": "Duvar", ".": "Boş", "K": "Kutu", "T": "Teslim noktası", "S": "Şarj"}[h[y][x]]
+            self.hucre_bilgisi.set(f"({x}, {y}) · {ad} · {self.durum['ziyaretler'].get((x, y), 0)} ziyaret")
+
     def rehber(self):
         messagebox.showinfo("Kısa kullanım rehberi", "1. Klasör veya üç ayrı girdi dosyası yükleyin.\n2. Adım (F6) bir komutu bütünüyle işler.\n3. Tümünü çalıştır (F5) komutları sırayla oynatır.\n4. Sıfırla (Ctrl+R) haritayı ve bataryayı geri getirir.\n5. Bitişte çıktılar otomatik olarak ciktilar klasörüne yazılır.\n\nK: kutu · T: teslim · S: şarj\nYönler: K kuzey, D doğu, G güney, B batı.\nKoordinat (x, y): sütun, satır; sol üst (0, 0).\n\nGIT x y en kısa hücre yolunu kullanır.\nKullanım ayrıntıları README.md dosyasındadır.", parent=self.pencere)
 
