@@ -237,5 +237,83 @@ class DepoUygulamasi:
         self.durum_mesaji.set("Başlangıç durumuna dönüldü. Dosyalar yeniden okunmadı.")
         self.guncelle()
 
+    def adim(self, otomatik=False):
+        if self.calisiyor and not otomatik:
+            self.duraklat()
+        if self.durum is None or self.durum["durdu"] or self.indeks >= len(self.komutlar):
+            return
+        sim.komut_uygula(self.durum, self.komutlar[self.indeks])
+        self.komut_agaci.item(str(self.indeks), tags=("tamam",))
+        self.indeks += 1
+        kayit = self.durum["log"][-1]
+        uyari = kayit["olay"] in ("GECERSIZ", "CARPISMA", "BATARYA_BITTI", "YOL_YOK")
+        iid = self.log_agaci.insert("", "end", values=[kayit[k] for k in sim.LOG_ALANLARI], tags=("uyari",) if uyari else ())
+        self.log_agaci.see(iid)
+        self.durum_mesaji.set(OLAYLAR.get(kayit["olay"], kayit["olay"]))
+        self.guncelle()
+        if self.durum["durdu"] or self.indeks >= len(self.komutlar):
+            self.duraklat()
+            try:
+                self.ciktilari_kaydet(KOK / "ciktilar")
+                son = "Enerji yetersiz; durdu." if self.durum["durdu"] else "Tüm komutlar tamamlandı."
+                self.durum_mesaji.set(son + " Sonuç ve log ciktilar klasörüne kaydedildi.")
+            except OSError as hata:
+                messagebox.showerror("Çıktı kaydedilemedi", str(hata), parent=self.pencere)
+
+    def calistir_duraklat(self):
+        if self.calisiyor:
+            self.duraklat()
+            self.durum_mesaji.set("Duraklatıldı. Adım ile devam edebilirsiniz.")
+            return
+        if self.durum is None or self.durum["durdu"] or self.indeks >= len(self.komutlar):
+            return
+        self.calisiyor = True
+        self.calistir_buton.configure(text="Duraklat")
+        self._otomatik_adim()
+
+    def _otomatik_adim(self):
+        self.zamanlayici = None
+        if not self.calisiyor:
+            return
+        self.adim(otomatik=True)
+        if self.calisiyor:
+
+
+            self.zamanlayici = self.pencere.after(max(30, int(self.hiz.get())), self._otomatik_adim)
+
+    def duraklat(self):
+        self.calisiyor = False
+        if self.zamanlayici is not None:
+            self.pencere.after_cancel(self.zamanlayici)
+            self.zamanlayici = None
+        if hasattr(self, "calistir_buton"):
+            self.calistir_buton.configure(text="Tümünü çalıştır")
+
+    def ciktilari_kaydet(self, klasor):
+        klasor = Path(klasor)
+        klasor.mkdir(parents=True, exist_ok=True)
+        sim.sonuc_yaz(sim.durum_sonucu(self.durum), klasor / "sonuc.json")
+        sim.log_yaz(self.durum["log"], klasor / "log.csv")
+
+    def kaydet_sec(self):
+        self.duraklat()
+        if self.durum is None:
+            return
+        klasor = filedialog.askdirectory(title="sonuc.json ve log.csv için klasör seçin", initialdir=KOK)
+        if not klasor:
+            return
+        if any((Path(klasor) / ad).exists() for ad in ("sonuc.json", "log.csv")):
+            if not messagebox.askyesno("Mevcut çıktılar", "Bu klasördeki sonuc.json ve log.csv dosyalarının üzerine yazılsın mı?", parent=self.pencere):
+                return
+        try:
+            self.ciktilari_kaydet(klasor)
+            self.durum_mesaji.set(f"Mevcut durum kaydedildi: {klasor}")
+        except OSError as hata:
+            messagebox.showerror("Kayıt hatası", str(hata), parent=self.pencere)
+
     def rehber(self):
         messagebox.showinfo("Kısa kullanım rehberi", "1. Klasör veya üç ayrı girdi dosyası yükleyin.\n2. Adım (F6) bir komutu bütünüyle işler.\n3. Tümünü çalıştır (F5) komutları sırayla oynatır.\n4. Sıfırla (Ctrl+R) haritayı ve bataryayı geri getirir.\n5. Bitişte çıktılar otomatik olarak ciktilar klasörüne yazılır.\n\nK: kutu · T: teslim · S: şarj\nYönler: K kuzey, D doğu, G güney, B batı.\nKoordinat (x, y): sütun, satır; sol üst (0, 0).\n\nGIT x y en kısa hücre yolunu kullanır.\nKullanım ayrıntıları README.md dosyasındadır.", parent=self.pencere)
+
+    def kapat(self):
+        self.duraklat()
+        self.pencere.destroy()
