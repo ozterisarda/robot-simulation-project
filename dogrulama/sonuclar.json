@@ -1,0 +1,240 @@
+{
+  "tarih": "2026-10-27",
+  "python": "3.10.6",
+  "resmi_ornekler": {
+    "gecen": 6,
+    "toplam": 6
+  },
+  "ek_testler": {
+    "gecen": 27,
+    "toplam": 27,
+    "atlanan": 0
+  },
+  "rastgele_tutarlilik": {
+    "tohum": 217,
+    "senaryo": 100,
+    "senaryo_basina_komut": 80
+  },
+  "deneme_verileri": [
+    {
+      "veri": "veri_1",
+      "gecerli_komut": 69,
+      "islenen_komut": 69,
+      "hatali_satir": 3,
+      "konum": [
+        14,
+        8
+      ],
+      "yon": "D",
+      "batarya": 2,
+      "yuk": false,
+      "teslim": 4,
+      "carpisma": 1,
+      "toplam_adim": 63,
+      "batarya_bitti": false,
+      "en_cok_ziyaret_edilen": [
+        6,
+        6
+      ],
+      "en_cok_ziyaret_sayisi": 5,
+      "hatali_satirlar": [
+        {
+          "satir": 48,
+          "icerik": "AL 1",
+          "neden": "AL parametre almaz."
+        },
+        {
+          "satir": 55,
+          "icerik": "ILERI -1",
+          "neden": "Adım sayısı sıfırdan büyük bir tam sayı olmalıdır."
+        },
+        {
+          "satir": 70,
+          "icerik": "sol",
+          "neden": "Bilinmeyen komut; komutlar büyük harfle yazılmalıdır."
+        }
+      ]
+    },
+    {
+      "veri": "veri_2",
+      "gecerli_komut": 81,
+      "islenen_komut": 81,
+      "hatali_satir": 4,
+      "konum": [
+        11,
+        1
+      ],
+      "yon": "K",
+      "batarya": 2,
+      "yuk": false,
+      "teslim": 5,
+      "carpisma": 1,
+      "toplam_adim": 70,
+      "batarya_bitti": false,
+      "en_cok_ziyaret_edilen": [
+        6,
+        4
+      ],
+      "en_cok_ziyaret_sayisi": 4,
+      "hatali_satirlar": [
+        {
+          "satir": 30,
+          "icerik": "ILERI 0",
+          "neden": "Adım sayısı sıfırdan büyük bir tam sayı olmalıdır."
+        },
+        {
+          "satir": 39,
+          "icerik": "GERI 1",
+          "neden": "Bilinmeyen komut; komutlar büyük harfle yazılmalıdır."
+        },
+        {
+          "satir": 53,
+          "icerik": "ILER 2",
+          "neden": "Bilinmeyen komut; komutlar büyük harfle yazılmalıdır."
+        },
+        {
+          "satir": 71,
+          "icerik": "SARJ ET",
+          "neden": "SARJ parametre almaz."
+        }
+      ]
+    },
+    {
+      "veri": "veri_3",
+      "gecerli_komut": 77,
+      "islenen_komut": 77,
+      "hatali_satir": 3,
+      "konum": [
+        10,
+        8
+      ],
+      "yon": "D",
+      "batarya": 94,
+      "yuk": false,
+      "teslim": 4,
+      "carpisma": 1,
+      "toplam_adim": 67,
+      "batarya_bitti": false,
+      "en_cok_ziyaret_edilen": [
+        10,
+        4
+      ],
+      "en_cok_ziyaret_sayisi": 5,
+      "hatali_satirlar": [
+        {
+          "satir": 20,
+          "icerik": "AL 1",
+          "neden": "AL parametre almaz."
+        },
+        {
+          "satir": 46,
+          "icerik": "ILER 2",
+          "neden": "Bilinmeyen komut; komutlar büyük harfle yazılmalıdır."
+        },
+        {
+          "satir": 47,
+          "icerik": "BIRAK KUTU",
+          "neden": "BIRAK parametre almaz."
+        }
+      ]
+    },
+    {
+      "veri": "veri_4",
+      "gecerli_komut": 82,
+      "islenen_komut": 82,
+      "hatali_satir": 5,
+      "konum": [
+        10,
+        1
+      ],
+      "yon": "K",
+      "batarya": 60,
+      "yuk": false,
+      "teslim": 5,
+      "carpisma": 1,
+      "toplam_adim": 75,
+      "batarya_bitti": false,
+      "en_cok_ziyaret_edilen": [
+        1,
+        5
+      ],
+      "en_cok_ziyaret_sayisi": 6,
+      "hatali_satirlar": [
+        {
+          "satir": 2,
+          "icerik": "ILERI",
+          "neden": "ILERI tam olarak bir pozitif tam sayı alır."
+        },
+        {
+          "satir": 10,
+          "icerik": "ILERI -1",
+          "neden": "Adım sayısı sıfırdan büyük bir tam sayı olmalıdır."
+        },
+        {
+          "satir": 17,
+          "icerik": "AL 1",
+          "neden": "AL parametre almaz."
+        },
+        {
+          "satir": 51,
+          "icerik": "ILER 2",
+          "neden": "Bilinmeyen komut; komutlar büyük harfle yazılmalıdır."
+        },
+        {
+          "satir": 54,
+          "icerik": "SARJ ET",
+          "neden": "SARJ parametre almaz."
+        }
+      ]
+    },
+    {
+      "veri": "veri_5",
+      "gecerli_komut": 40,
+      "islenen_komut": 40,
+      "hatali_satir": 5,
+      "konum": [
+        13,
+        3
+      ],
+      "yon": "D",
+      "batarya": 86,
+      "yuk": false,
+      "teslim": 3,
+      "carpisma": 1,
+      "toplam_adim": 34,
+      "batarya_bitti": false,
+      "en_cok_ziyaret_edilen": [
+        6,
+        3
+      ],
+      "en_cok_ziyaret_sayisi": 4,
+      "hatali_satirlar": [
+        {
+          "satir": 5,
+          "icerik": "BIRAK KUTU",
+          "neden": "BIRAK parametre almaz."
+        },
+        {
+          "satir": 8,
+          "icerik": "GERI 1",
+          "neden": "Bilinmeyen komut; komutlar büyük harfle yazılmalıdır."
+        },
+        {
+          "satir": 9,
+          "icerik": "ILERI 0",
+          "neden": "Adım sayısı sıfırdan büyük bir tam sayı olmalıdır."
+        },
+        {
+          "satir": 43,
+          "icerik": "DUR",
+          "neden": "Bilinmeyen komut; komutlar büyük harfle yazılmalıdır."
+        },
+        {
+          "satir": 45,
+          "icerik": "sol",
+          "neden": "Bilinmeyen komut; komutlar büyük harfle yazılmalıdır."
+        }
+      ]
+    }
+  ]
+}

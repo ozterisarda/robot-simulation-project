@@ -1,0 +1,32 @@
+test_al_birak_tekrar_al_ve_teslim (test_simulasyon.SimulasyonTestleri) ... ok
+test_bfs_180_derece_donuste_kismi_enerji (test_simulasyon.SimulasyonTestleri) ... ok
+test_bfs_engelin_cevresindeki_en_kisa_yol (test_simulasyon.SimulasyonTestleri) ... ok
+test_bfs_hedefte_duvar_disarisi_ve_ulasilamaz (test_simulasyon.SimulasyonTestleri) ... ok
+test_bfs_yol_ortasinda_enerji_yetmemesi (test_simulasyon.SimulasyonTestleri) ... ok
+test_bozuk_haritalar (test_simulasyon.SimulasyonTestleri) ... ok
+test_carpisma_cezasi_esit_ve_buyuk (test_simulasyon.SimulasyonTestleri) ... ok
+test_carpisma_tek_ceza_ve_sonraki_komuta_devam (test_simulasyon.SimulasyonTestleri) ... ok
+test_donusun_enerjiyi_tam_tuketmesi (test_simulasyon.SimulasyonTestleri) ... ok
+test_enerji_yetmeyen_donus_yonu_degistirmez (test_simulasyon.SimulasyonTestleri) ... ok
+test_gecersiz_eylemler_enerji_harcamaz (test_simulasyon.SimulasyonTestleri) ... ok
+test_harita_disina_cikma (test_simulasyon.SimulasyonTestleri) ... ok
+test_hatalar_bos_satirlarla_numaralanir_ve_sonuca_tasinir (test_simulasyon.SimulasyonTestleri) ... ok
+test_ikinci_kutu_alinmaz_ve_sarj_ustune_birakilmaz (test_simulasyon.SimulasyonTestleri) ... ok
+test_json_csv_gercek_dosyaya_yazilir (test_simulasyon.SimulasyonTestleri) ... ok
+test_json_ve_ayar_dogrulama (test_simulasyon.SimulasyonTestleri) ... ok
+test_kismi_hareket_ve_kalan_komutlarin_iptali (test_simulasyon.SimulasyonTestleri) ... ok
+test_tam_sifira_inip_sarj_olabilme (test_simulasyon.SimulasyonTestleri) ... ok
+test_utf8_bom_destegi (test_simulasyon.SimulasyonTestleri) ... ok
+test_verilen_bes_veride_ve_rastgele_komutlarda_tutarlilik (test_simulasyon.SimulasyonTestleri) ... ok
+test_yeni_durum_girdileri_degistirmez (test_simulasyon.SimulasyonTestleri) ... ok
+test_ziyaret_esitliginde_y_sonra_x (test_simulasyon.SimulasyonTestleri) ... ok
+test_adim_sifirla_ve_bilgi_paneli (test_arayuz.ArayuzTestleri) ... ok
+test_biten_ui_ile_toplu_motor_ayni_sonucu_verir (test_arayuz.ArayuzTestleri) ... ok
+test_bozuk_dosya_eski_oturumu_korur (test_arayuz.ArayuzTestleri) ... ok
+test_ornekler_ve_hata_paneli (test_arayuz.ArayuzTestleri) ... ok
+test_otomatik_calisma_duraklatma_ve_sifirlamada_timer_iptali (test_arayuz.ArayuzTestleri) ... ok
+
+----------------------------------------------------------------------
+Ran 27 tests in 1.596s
+
+OK
